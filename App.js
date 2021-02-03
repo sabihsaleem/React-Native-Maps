@@ -24,28 +24,25 @@ export default class App extends Component {
         latitudeDelta: 0.015,
         longitudeDelta: 0.0121,
       },
-      // marker: [],
+      marker: [],
     };
   }
 
-  // componentDidMount() {
-  //   let marker = [];
-  //   let value = {...this.state.region, title: 'asd', description: 'dsffsd'};
-  //   marker.push(value);
-  //   console.log('marker', marker);
-  //   this.setState({
-  //     marker,
-  //   });
-  // }
-
   onRegionChange(region) {
-    console.log('{{{{',region)
     this.setState({
       region,
     });
   }
 
+  onDraggedEnd = (ele) => {
+    console.log('ele',ele.nativeEvent.coordinate)
+    this.setState({
+      marker: ele.nativeEvent.coordinate
+    })
+  }
+
   render() {
+    console.log('this.state.marker',this.state.marker)
     return (
       <View style={styles.container}>
         <MapView
@@ -61,7 +58,7 @@ export default class App extends Component {
           zoomEnabled={true}
           zoomTapEnabled={true}
           >
-          <Marker 
+          <Marker draggable
             coordinate={{
               latitude: 24.8607,
               longitude: 67.0000,
@@ -69,8 +66,9 @@ export default class App extends Component {
             title= 'Marker 1'
             description= 'description Marker 1'
             image={require('./mapMarker.png')}
+            onDragEnd={(ele)=> this.onDraggedEnd(ele) }
           />
-          <Marker 
+          <Marker draggable
             coordinate={{
               latitude: 24.8607,
               longitude: 67.0100,
@@ -78,8 +76,9 @@ export default class App extends Component {
             title= 'Marker 2'
             description= 'description Marker 2'
             image={require('./mapMarker.png')}
+            onDragEnd={(ele)=> this.onDraggedEnd(ele) }
           />
-          <Marker 
+          <Marker draggable
             coordinate={{
               latitude: 24.8607,
               longitude: 67.0011,
@@ -87,16 +86,8 @@ export default class App extends Component {
             title= 'Marker 3'
             description= 'description Marker 3'
             image={require('./mapMarker.png')}
+            onDragEnd={(ele)=> this.onDraggedEnd(ele) }
           />
-          
-          {/* {this.state?.markers?.map((marker) => (
-            <Marker
-              coordinate={marker.latitude, marker.longitude}
-              title={marker.title}
-              description={marker.description}
-              image={require('../mapMarker.png')}
-            />
-          ))} */}
         </MapView>
       </View>
     );
