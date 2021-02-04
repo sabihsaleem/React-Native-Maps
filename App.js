@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
-import {StyleSheet, View, Text, Image, TouchableOpacity, Button} from 'react-native';
+import {StyleSheet, View, Text, Image, TouchableOpacity, PermissionsAndroid, Alert} from 'react-native';
 import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps'; // remove PROVIDER_GOOGLE import if not using Google Maps
+import Geolocation from 'react-native-geolocation-service';
+import Geocoder from 'react-native-geocoding';
 
 const styles = StyleSheet.create({
   container: {
@@ -15,6 +17,8 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
 });
+
+Geocoder.init("AIzaSyBVATI2CtnC6O8U8JJ8tLspP63MWUiFlHk");
 
 export default class App extends Component {
   constructor(props) {
@@ -32,12 +36,32 @@ export default class App extends Component {
       title: '',
       description: '',
       mapType: 'standard',
+      Address: '',
     };
   }
 
-  // componentDidMount() {
-  //   console.log('title',this.state.title)
-  // }
+  async componentDidMount() {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        {
+          'title': 'ReactNativeCode Location Permission',
+          'message': 'ReactNativeCode App needs access to your location '
+        }
+      )
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+   
+        Alert.alert("Location Permission Granted.");
+      }
+      else {
+   
+        Alert.alert("Location Permission Not Granted");
+   
+      }
+    } catch (err) {
+      console.warn(err)
+    }
+  }
 
   onRegionChange(region) {
     this.setState({
@@ -54,9 +78,30 @@ export default class App extends Component {
 
   onPressed(element) {
     element.persist()
-    console.log('element.target',element.target._internalFiberInstanceHandleDEV.memoizedProps)
-    console.log('element.target._internalFiberInstanceHandleDEV.memoizedProps.title',element.target._internalFiberInstanceHandleDEV.memoizedProps.title)
-    console.log('element.target._internalFiberInstanceHandleDEV.memoizedProps.description',element.target._internalFiberInstanceHandleDEV.memoizedProps.description)
+    Geolocation.getCurrentPosition(
+      (element) => {
+        console.log('setGeolocation', element?.coords);
+        Geocoder.from(element.coords.latitude, element.coords.longitude)
+        .then(json => {
+            console.log('json',json);
+            var addressComponent = json.results[0].address_components;
+            this.setState({
+                Address: addressComponent
+            })
+            console.log(addressComponent,'addressComponent');
+        })
+        .catch(error => console.warn('error',error));
+
+      },
+      (error) => {
+        console.log(error,'geolocation error');
+      },
+      {enableHighAccuracy: true, timeout: 0, maximumAge: 0},
+    );
+
+    // console.log('element.target',element.target._internalFiberInstanceHandleDEV.memoizedProps)
+    // console.log('element.target._internalFiberInstanceHandleDEV.memoizedProps.title',element.target._internalFiberInstanceHandleDEV.memoizedProps.title)
+    // console.log('element.target._internalFiberInstanceHandleDEV.memoizedProps.description',element.target._internalFiberInstanceHandleDEV.memoizedProps.description)
     this.setState({
       markerLatitude: element.nativeEvent.coordinate.latitude,
       markerLongitude: element.nativeEvent.coordinate.longitude,
